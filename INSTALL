@@ -1,0 +1,14 @@
+libzip++ -- installation instructions
+-----------------------------------------------------------
+
+Requirements
+------------
+
+* libzip, http://www.nih.at/libzip/
+* C++11
+
+Installation
+------------
+
+Just copy the two files ZipArchive.h and ZipArchive.cpp and add them to your
+project.
