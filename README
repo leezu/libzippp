@@ -1,6 +1,9 @@
 libzip++ -- A safe modern C++ wrapper around libzip
 -----------------------------------------------------------
 
+Introduction
+------------
+
 The libzip library is a good C library for opening and creating zip archives,
 this wrapper provides safe C++ classes around this great library.
 
@@ -11,6 +14,28 @@ The benefits:
 * Easy API
 * Easy file reading in archive
 
+Documentation
+-------------
+
 The API reference is available here:
 
 https://redmine.malikania.fr/projects/common-code/wiki/Zip
+
+Usage
+-----
+
+Very simple extraction of a file
+
+    #include "ZipArchive.h"
+    
+    try {
+    	ZipArchive archive{"mydata.zip"};
+    	ZipStats stat = archive.stat("README");
+    	ZipFile file = archive.open("README");
+    
+    	std::cout << "content of README:" << std::endl;
+    	std::cout << file.read(stat.size);
+    } catch (const std::exception &ex) {
+    	std::cerr << ex.what() << std::endl;
+    	std::exit(1);
+    }
