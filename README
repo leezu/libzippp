@@ -24,13 +24,13 @@ https://redmine.malikania.fr/projects/common-code/wiki/Zip
 Usage
 -----
 
-Very simple extraction of a file
+Very simple extraction of a file.
 
     #include "ZipArchive.h"
     
     try {
     	ZipArchive archive{"mydata.zip"};
-    	ZipStats stat = archive.stat("README");
+    	ZipStat stat = archive.stat("README");
     	ZipFile file = archive.open("README");
     
     	std::cout << "content of README:" << std::endl;
