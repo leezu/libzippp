@@ -59,6 +59,7 @@ public:
 	 * instead.
 	 *
 	 * @return a zip_source ready to be used
+	 * @throw std::runtime_error on errors
 	 * @post must not return null
 	 */
 	virtual struct zip_source *source(struct zip *zip) const = 0;
@@ -74,6 +75,7 @@ private:
 
 	ZipFile(const ZipFile &) = delete;
 	ZipFile &operator=(const ZipFile &) = delete;
+
 public:
 	/**
 	 * Create a ZipFile with a zip_file structure.
@@ -90,7 +92,7 @@ public:
 	 *
 	 * @param other the other ZipFile
 	 */
-	ZipFile(ZipFile &&other) = default;
+	ZipFile(ZipFile &&other) noexcept = default;
 
 	/**
 	 * Move operator defaulted.
@@ -98,7 +100,7 @@ public:
 	 * @param other the other ZipFile
 	 * @return *this
 	 */
-	ZipFile &operator=(ZipFile &&) = default;
+	ZipFile &operator=(ZipFile &&) noexcept = default;
 
 	/**
 	 * Read some data.
@@ -141,6 +143,8 @@ public:
 
 		if (count < 0)
 			return "";
+
+		result.resize(count);
 
 		return result;
 	}
@@ -217,6 +221,7 @@ public:
 	 *
 	 * @param path the path
 	 * @param flags the optional flags
+	 * @throw std::runtime_error on errors
 	 */
 	ZipArchive(const std::string &path, ZipFlags flags = 0);
 
@@ -241,6 +246,7 @@ public:
 	 * @param index the file index in the archive
 	 * @param text the text or empty to remove the comment
 	 * @param flags the optional flags
+	 * @throw std::runtime_error on errors
 	 */
 	void setFileComment(ZipUint64 index, const std::string &text = "", ZipFlags flags = 0);
 
@@ -250,6 +256,7 @@ public:
 	 * @param index the file index in the archive
 	 * @param flags the optional flags
 	 * @return the comment
+	 * @throw std::runtime_error on errors
 	 */
 	std::string getFileComment(ZipUint64 index, ZipFlags flags = 0) const;
 
@@ -257,6 +264,7 @@ public:
 	 * Set the archive comment.
 	 *
 	 * @param comment the comment
+	 * @throw std::runtime_error on errors
 	 */
 	void setComment(const std::string &comment);
 
@@ -265,6 +273,7 @@ public:
 	 *
 	 * @param flags the optional flags
 	 * @return the comment
+	 * @throw std::runtime_error on errors
 	 */
 	std::string getComment(ZipFlags flags = 0) const;
 
@@ -274,6 +283,7 @@ public:
 	 * @param name the name
 	 * @param flags the optional flags
 	 * @return the index
+	 * @throw std::runtime_error on errors
 	 */
 	ZipInt64 find(const std::string &name, ZipFlags flags = 0);
 
@@ -283,6 +293,7 @@ public:
 	 * @param name the name
 	 * @param flags the optional flags
 	 * @return the structure
+	 * @throw std::runtime_error on errors
 	 */
 	ZipStat stat(const std::string &name, ZipFlags flags = 0);
 
@@ -292,6 +303,7 @@ public:
 	 * @param index the file index in the archive
 	 * @param flags the optional flags
 	 * @return the structure
+	 * @throw std::runtime_error on errors
 	 */
 	ZipStat stat(ZipUint64 index, ZipFlags flags = 0);
 
@@ -302,6 +314,7 @@ public:
 	 * @param name the name entry in the archive
 	 * @param flags the optional flags
 	 * @return the new index in the archive
+	 * @throw std::runtime_error on errors
 	 * @see source::File
 	 * @see source::Buffer
 	 */
@@ -313,6 +326,7 @@ public:
 	 * @param directory the directory name
 	 * @param flags the optional flags
 	 * @return the new index in the archive
+	 * @throw std::runtime_error on errors
 	 */
 	ZipInt64 addDirectory(const std::string &directory, ZipFlags flags = 0);
 
@@ -322,6 +336,7 @@ public:
 	 * @param source the source
 	 * @param index the file index in the archiev
 	 * @param flags the optional flags
+	 * @throw std::runtime_error on errors
 	 */
 	void replace(const ZipSource &source, ZipUint64 index, ZipFlags flags = 0);
 
@@ -332,6 +347,7 @@ public:
 	 * @param flags the optional flags
 	 * @param password the optional password
 	 * @return the opened file
+	 * @throw std::runtime_error on errors
 	 */
 	ZipFile open(const std::string &name, ZipFlags flags = 0, const std::string &password = "");
 
@@ -342,6 +358,7 @@ public:
 	 * @param flags the optional flags
 	 * @param password the optional password
 	 * @return the opened file
+	 * @throw std::runtime_error on errors
 	 */
 	ZipFile open(ZipUint64 index, ZipFlags flags = 0, const std::string &password = "");
 
@@ -351,6 +368,7 @@ public:
 	 * @param index the file index in the archive
 	 * @param name the new name
 	 * @param flags the optional flags
+	 * @throw std::runtime_error on errors
 	 */
 	void rename(ZipUint64 index, const std::string &name, ZipFlags flags = 0);
 
@@ -360,6 +378,7 @@ public:
 	 * @param index the file index in the archive
 	 * @param comp the compression
 	 * @param flags the optional flags
+	 * @throw std::runtime_error on errors
 	 */
 	void setFileCompression(ZipUint64 index, ZipInt32 comp, ZipUint32 flags = 0);
 
@@ -367,6 +386,7 @@ public:
 	 * Delete a file from the archive.
 	 *
 	 * @param index the file index in the archive
+	 * @throw std::runtime_error on errors
 	 */
 	void remove(ZipUint64 index);
 
@@ -375,6 +395,7 @@ public:
 	 *
 	 * @param flags the optional flags
 	 * @return the number of entries
+	 * @throw std::runtime_error on errors
 	 */
 	ZipInt64 numEntries(ZipFlags flags = 0) const;
 
@@ -382,16 +403,21 @@ public:
 	 * Revert changes on the file.
 	 *
 	 * @param index the index
+	 * @throw std::runtime_error on errors
 	 */
 	void unchange(ZipUint64 index);
 
 	/**
 	 * Revert all changes.
+	 *
+	 * @throw std::runtime_error on errors
 	 */
 	void unchangeAll();
 
 	/**
 	 * Revert changes to archive.
+	 *
+	 * @throw std::runtime_error on errors
 	 */
 	void unchangeArchive();
 
@@ -399,6 +425,7 @@ public:
 	 * Set the defaut password.
 	 *
 	 * @param password the password or empty to unset it
+	 * @throw std::runtime_error on errors
 	 */
 	void setDefaultPassword(const std::string &password = "");
 
@@ -407,6 +434,7 @@ public:
 	 *
 	 * @param flag the flag to set
 	 * @param value the value
+	 * @throw std::runtime_error on errors
 	 */
 	void setFlag(ZipFlags flag, int value);
 
@@ -416,6 +444,7 @@ public:
 	 * @param which which flag
 	 * @param flags the optional flags
 	 * @return the value
+	 * @throw std::runtime_error on errors
 	 */
 	int getFlag(ZipFlags which, ZipFlags flags = 0) const;
 

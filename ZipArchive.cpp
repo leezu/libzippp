@@ -39,7 +39,7 @@ struct zip_source *Buffer::source(struct zip *archive) const
 	auto size = m_data.size();
 	auto data = static_cast<char *>(std::malloc(size));
 
-	if (!data)
+	if (data == nullptr)
 		throw std::runtime_error(std::strerror(errno));
 
 	std::memcpy(data, m_data.data(), size);
