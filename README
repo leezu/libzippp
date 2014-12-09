@@ -1,5 +1,5 @@
 libzip++ -- A safe modern C++ wrapper around libzip
------------------------------------------------------------
+===================================================
 
 Introduction
 ------------
@@ -13,29 +13,28 @@ The benefits:
 * Easy way to add files
 * Easy API
 * Easy file reading in archive
+* Convenience thanks to C++ function overloads
 
 Documentation
 -------------
 
-The API reference is available here:
-
-https://redmine.malikania.fr/projects/common-code/wiki/Zip
+The reference API is documented on the [Wiki](wiki).
 
 Usage
 -----
 
 Very simple extraction of a file.
 
-    #include "ZipArchive.h"
-    
-    try {
-    	ZipArchive archive{"mydata.zip"};
-    	ZipStat stat = archive.stat("README");
-    	ZipFile file = archive.open("README");
-    
-    	std::cout << "content of README:" << std::endl;
-    	std::cout << file.read(stat.size);
-    } catch (const std::exception &ex) {
-    	std::cerr << ex.what() << std::endl;
-    	std::exit(1);
-    }
+````cpp
+try {
+	ZipArchive archive{"mydata.zip"};
+	ZipStat stat = archive.stat("README");
+	ZipFile file = archive.open("README");
+
+	std::cout << "content of README:" << std::endl;
+	std::cout << file.read(stat.size);
+} catch (const std::exception &ex) {
+	std::cerr << ex.what() << std::endl;
+	std::exit(1);
+}
+````
