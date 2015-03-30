@@ -278,6 +278,15 @@ public:
 	std::string getComment(ZipFlags flags = 0) const;
 
 	/**
+	 * Check if a file exists on the archive.
+	 *
+	 * @param name the name
+	 * @param flags the optional flags
+	 * @return if the file exists
+	 */
+	bool exists(const std::string &name, ZipFlags flags = 0);
+
+	/**
 	 * Locate a file on the archive.
 	 *
 	 * @param name the name

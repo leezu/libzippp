@@ -136,6 +136,13 @@ std::string ZipArchive::getComment(ZipFlags flags) const
 	return { text, static_cast<size_t>(length) };
 }
 
+bool ZipArchive::exists(const std::string &name, ZipFlags flags)
+{
+	auto index = zip_name_locate(m_handle.get(), name.c_str(), flags);
+
+    return index >= 0;
+}
+
 ZipInt64 ZipArchive::find(const std::string &name, ZipFlags flags)
 {
 	auto index = zip_name_locate(m_handle.get(), name.c_str(), flags);
