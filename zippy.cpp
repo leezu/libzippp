@@ -1,7 +1,7 @@
 /*
- * ZipArchive.cpp -- wrapper around libzip
+ * zippy.cpp -- wrapper around libzip
  *
- * Copyright (c) 2013, 2014 David Demelier <markand@malikania.fr>
+ * Copyright (c) 2013-2016 David Demelier <markand@malikania.fr>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -21,75 +21,60 @@
 #include <cstring>
 #include <stdexcept>
 
-#include "ZipArchive.h"
+#include "zippy.h"
+
+namespace zippy {
 
 namespace source {
 
-/* --------------------------------------------------------
- * Buffer (zip_source_buffer)
- * -------------------------------------------------------- */
-
-Buffer::Buffer(std::string data)
-	: m_data(std::move(data))
+Source buffer(std::string data) noexcept
 {
+	return [=] (struct zip *archive) -> struct zip_source * {
+		auto size = data.size();
+		auto ptr = static_cast<char *>(std::malloc(size));
+
+		if (ptr == nullptr)
+			throw std::runtime_error(std::strerror(errno));
+
+		std::memcpy(ptr, data.data(), size);
+
+		auto src = zip_source_buffer(archive, ptr, size, 1);
+
+		if (src == nullptr) {
+			std::free(ptr);
+			throw std::runtime_error(zip_strerror(archive));
+		}
+
+		return src;
+	};
 }
 
-struct zip_source *Buffer::source(struct zip *archive) const
+Source file(std::string path, Uint64 start, Int64 length) noexcept
 {
-	auto size = m_data.size();
-	auto data = static_cast<char *>(std::malloc(size));
+	return [=] (struct zip *archive) -> struct zip_source * {
+		auto src = zip_source_file(archive, path.c_str(), start, length);
 
-	if (data == nullptr)
-		throw std::runtime_error(std::strerror(errno));
+		if (src == nullptr)
+			throw std::runtime_error(zip_strerror(archive));
 
-	std::memcpy(data, m_data.data(), size);
-
-	auto src = zip_source_buffer(archive, data, size, 1);
-
-	if (src == nullptr) {
-		std::free(data);
-		throw std::runtime_error(zip_strerror(archive));
-	}
-
-	return src;
-}
-
-/* --------------------------------------------------------
- * File (zip_source_file)
- * -------------------------------------------------------- */
-
-File::File(std::string path, ZipUint64 start, ZipInt64 length)
-	: m_path(std::move(path))
-	, m_start(start)
-	, m_length(length)
-{
-}
-
-struct zip_source *File::source(struct zip *archive) const
-{
-	auto src = zip_source_file(archive, m_path.c_str(), m_start, m_length);
-
-	if (src == nullptr)
-		throw std::runtime_error(zip_strerror(archive));
-
-	return src;
+		return src;
+	};
 }
 
 } // !source
 
 /* --------------------------------------------------------
- * ZipArchive
+ * Archive
  * ------------------------------------------------------- */
 
-ZipArchive::ZipArchive(const std::string &path, ZipFlags flags)
+Archive::Archive(const std::string &path, Flags flags)
 	: m_handle(nullptr, nullptr)
 {
 	int error;
 	struct zip *archive = zip_open(path.c_str(), flags, &error);
 
-	if (archive == nullptr)
-	{
-		char buf[128]{};
+	if (archive == nullptr) {
+		char buf[128]{0};
 
 		zip_error_to_str(buf, sizeof (buf), error, errno);
 
@@ -99,7 +84,7 @@ ZipArchive::ZipArchive(const std::string &path, ZipFlags flags)
 	m_handle = { archive, zip_close };
 }
 
-void ZipArchive::setFileComment(ZipUint64 index, const std::string &text, ZipFlags flags)
+void Archive::setFileComment(Uint64 index, const std::string &text, Flags flags)
 {
 	auto size = text.size();
 	auto cstr = (size == 0) ? nullptr : text.c_str();
@@ -108,42 +93,40 @@ void ZipArchive::setFileComment(ZipUint64 index, const std::string &text, ZipFla
 		throw std::runtime_error(zip_strerror(m_handle.get()));
 }
 
-std::string ZipArchive::getFileComment(ZipUint64 index, ZipFlags flags) const
+std::string Archive::fileComment(Uint64 index, Flags flags) const
 {
-	zip_uint32_t length{};
+	zip_uint32_t length = 0;
 	auto text = zip_file_get_comment(m_handle.get(), index, &length, flags);
 
 	if (text == nullptr)
 		throw std::runtime_error(zip_strerror(m_handle.get()));
 
-	return { text, length };
+	return std::string(text, length);
 }
 
-void ZipArchive::setComment(const std::string &comment)
+void Archive::setComment(const std::string &comment)
 {
 	if (zip_set_archive_comment(m_handle.get(), comment.c_str(), comment.size()) < 0)
 		throw std::runtime_error(zip_strerror(m_handle.get()));
 }
 
-std::string ZipArchive::getComment(ZipFlags flags) const
+std::string Archive::comment(Flags flags) const
 {
-	int length{};
+	int length = 0;
 	auto text = zip_get_archive_comment(m_handle.get(), &length, flags);
 
 	if (text == nullptr)
 		throw std::runtime_error(zip_strerror(m_handle.get()));
 
-	return { text, static_cast<size_t>(length) };
+	return std::string(text, static_cast<std::size_t>(length));
 }
 
-bool ZipArchive::exists(const std::string &name, ZipFlags flags)
+bool Archive::exists(const std::string &name, Flags flags) const noexcept
 {
-	auto index = zip_name_locate(m_handle.get(), name.c_str(), flags);
-
-    return index >= 0;
+	return zip_name_locate(m_handle.get(), name.c_str(), flags) >= 0;
 }
 
-ZipInt64 ZipArchive::find(const std::string &name, ZipFlags flags)
+Int64 Archive::find(const std::string &name, Flags flags) const
 {
 	auto index = zip_name_locate(m_handle.get(), name.c_str(), flags);
 
@@ -153,9 +136,9 @@ ZipInt64 ZipArchive::find(const std::string &name, ZipFlags flags)
 	return index;
 }
 
-ZipStat ZipArchive::stat(const std::string &name, ZipFlags flags)
+Stat Archive::stat(const std::string &name, Flags flags) const
 {
-	ZipStat st;
+	Stat st;
 
 	if (zip_stat(m_handle.get(), name.c_str(), flags, &st) < 0)
 		throw std::runtime_error(zip_strerror(m_handle.get()));
@@ -163,9 +146,9 @@ ZipStat ZipArchive::stat(const std::string &name, ZipFlags flags)
 	return st;
 }
 
-ZipStat ZipArchive::stat(ZipUint64 index, ZipFlags flags)
+Stat Archive::stat(Uint64 index, Flags flags) const
 {
-	ZipStat st;
+	Stat st;
 
 	if (zip_stat_index(m_handle.get(), index, flags, &st) < 0)
 		throw std::runtime_error(zip_strerror(m_handle.get()));
@@ -173,9 +156,9 @@ ZipStat ZipArchive::stat(ZipUint64 index, ZipFlags flags)
 	return st;
 }
 
-ZipInt64 ZipArchive::add(const ZipSource &source, const std::string &name, ZipFlags flags)
+Int64 Archive::add(const Source &source, const std::string &name, Flags flags)
 {
-	auto src = source.source(m_handle.get());
+	auto src = source(m_handle.get());
 	auto ret = zip_file_add(m_handle.get(), name.c_str(), src, flags);
 
 	if (ret < 0) {
@@ -186,7 +169,7 @@ ZipInt64 ZipArchive::add(const ZipSource &source, const std::string &name, ZipFl
 	return ret;
 }
 
-ZipInt64 ZipArchive::addDirectory(const std::string &directory, ZipFlags flags)
+Int64 Archive::mkdir(const std::string &directory, Flags flags)
 {
 	auto ret = zip_dir_add(m_handle.get(), directory.c_str(), flags);
 
@@ -196,9 +179,9 @@ ZipInt64 ZipArchive::addDirectory(const std::string &directory, ZipFlags flags)
 	return ret;
 }
 
-void ZipArchive::replace(const ZipSource &source, ZipUint64 index, ZipFlags flags)
+void Archive::replace(const Source &source, Uint64 index, Flags flags)
 {
-	auto src = source.source(m_handle.get());
+	auto src = source(m_handle.get());
 
 	if (zip_file_replace(m_handle.get(), index, src, flags) < 0) {
 		zip_source_free(src);
@@ -206,7 +189,7 @@ void ZipArchive::replace(const ZipSource &source, ZipUint64 index, ZipFlags flag
 	}
 }
 
-ZipFile ZipArchive::open(const std::string &name, ZipFlags flags, const std::string &password)
+File Archive::open(const std::string &name, Flags flags, const std::string &password)
 {
 	struct zip_file *file;
 
@@ -221,7 +204,7 @@ ZipFile ZipArchive::open(const std::string &name, ZipFlags flags, const std::str
 	return file;
 }
 
-ZipFile ZipArchive::open(ZipUint64 index, ZipFlags flags, const std::string &password)
+File Archive::open(Uint64 index, Flags flags, const std::string &password)
 {
 	struct zip_file *file;
 
@@ -236,48 +219,48 @@ ZipFile ZipArchive::open(ZipUint64 index, ZipFlags flags, const std::string &pas
 	return file;
 }
 
-void ZipArchive::rename(ZipUint64 index, const std::string &name, ZipFlags flags)
+void Archive::rename(Uint64 index, const std::string &name, Flags flags)
 {
 	if (zip_file_rename(m_handle.get(), index, name.c_str(), flags) < 0)
 		throw std::runtime_error(zip_strerror(m_handle.get()));
 }
 
-void ZipArchive::setFileCompression(ZipUint64 index, ZipInt32 comp, ZipUint32 flags)
+void Archive::setFileCompression(Uint64 index, Int32 comp, Uint32 flags)
 {
 	if (zip_set_file_compression(m_handle.get(), index, comp, flags) < 0)
 		throw std::runtime_error(zip_strerror(m_handle.get()));
 }
 
-void ZipArchive::remove(ZipUint64 index)
+void Archive::remove(Uint64 index)
 {
 	if (zip_delete(m_handle.get(), index) < 0)
 		throw std::runtime_error(zip_strerror(m_handle.get()));
 }
 
-ZipInt64 ZipArchive::numEntries(ZipFlags flags) const
+Int64 Archive::numEntries(Flags flags) const noexcept
 {
 	return zip_get_num_entries(m_handle.get(), flags);
 }
 
-void ZipArchive::unchange(ZipUint64 index)
+void Archive::unchange(Uint64 index)
 {
 	if (zip_unchange(m_handle.get(), index) < 0)
 		throw std::runtime_error(zip_strerror(m_handle.get()));
 }
 
-void ZipArchive::unchangeAll()
+void Archive::unchangeAll()
 {
 	if (zip_unchange_all(m_handle.get()) < 0)
 		throw std::runtime_error(zip_strerror(m_handle.get()));
 }
 
-void ZipArchive::unchangeArchive()
+void Archive::unchangeArchive()
 {
 	if (zip_unchange_archive(m_handle.get()) < 0)
 		throw std::runtime_error(zip_strerror(m_handle.get()));
 }
 
-void ZipArchive::setDefaultPassword(const std::string &password)
+void Archive::setDefaultPassword(const std::string &password)
 {
 	auto cstr = (password.size() > 0) ? password.c_str() : nullptr;
 
@@ -285,13 +268,13 @@ void ZipArchive::setDefaultPassword(const std::string &password)
 		throw std::runtime_error(zip_strerror(m_handle.get()));
 }
 
-void ZipArchive::setFlag(ZipFlags flags, int value)
+void Archive::setFlag(Flags flags, int value)
 {
 	if (zip_set_archive_flag(m_handle.get(), flags, value) < 0)
 		throw std::runtime_error(zip_strerror(m_handle.get()));
 }
 
-int ZipArchive::getFlag(ZipFlags which, ZipFlags flags) const
+int Archive::flag(Flags which, Flags flags) const
 {
 	auto ret = zip_get_archive_flag(m_handle.get(), which, flags);
 
@@ -300,3 +283,5 @@ int ZipArchive::getFlag(ZipFlags which, ZipFlags flags) const
 
 	return ret;
 }
+
+} // !zippy

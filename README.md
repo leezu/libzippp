@@ -9,11 +9,11 @@ this wrapper provides safe C++ classes around this great library.
 
 The benefits:
 
-* Automatic allocations and destructions (RAII)
-* Easy way to add files
-* Easy API
-* Easy file reading in archive
-* Convenience thanks to C++ function overloads
+  - Automatic allocations and destructions (RAII),
+  - Easy way to add files,
+  - Easy API,
+  - Easy file reading in archive,
+  - Convenience, thanks to C++ function overloads.
 
 Documentation
 -------------
@@ -27,9 +27,9 @@ Very simple extraction of a file.
 
 ````cpp
 try {
-	ZipArchive archive{"mydata.zip"};
-	ZipStat stat = archive.stat("README");
-	ZipFile file = archive.open("README");
+	zippy::Archive archive("mydata.zip");
+	zippy::Stat stat = archive.stat("README");
+	zippy::File file = archive.open("README");
 
 	std::cout << "content of README:" << std::endl;
 	std::cout << file.read(stat.size);
