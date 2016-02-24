@@ -19,6 +19,7 @@
 #ifndef _ZIPPY_H_
 #define _ZIPPY_H_
 
+#include <cassert>
 #include <functional>
 #include <iterator>
 #include <memory>
@@ -228,6 +229,166 @@ public:
 };
 
 /**
+ * @class Iterator
+ * @brief This is the base class for iterator and const_iterator.
+ */
+template <typename ArchiveType>
+class Iterator : public std::iterator<std::random_access_iterator_tag, Stat> {
+private:
+	friend class Archive;
+
+	ArchiveType *m_archive{nullptr};
+	Uint64 m_index{0};
+
+	inline Iterator(ArchiveType *archive, Uint64 index = 0) noexcept
+		: m_archive(archive)
+		, m_index(index)
+	{
+	}
+
+public:
+	/**
+	 * Default iterator.
+	 */
+	Iterator() noexcept = default;
+
+	/**
+	 * Dereference the iterator.
+	 *
+	 * @return the stat information
+	 */
+	inline Stat operator*() const
+	{
+		assert(m_archive);
+
+		return m_archive->stat(m_index);
+	}
+
+	/**
+	 * Dereference the iterator.
+	 *
+	 * @return the stat information as point
+	 */
+	inline StatPtr operator->() const
+	{
+		assert(m_archive);
+
+		return StatPtr(m_archive->stat(m_index));
+	}
+
+	/**
+	 * Post increment.
+	 *
+	 * @return this
+	 */
+	inline Iterator &operator++() noexcept
+	{
+		++ m_index;
+
+		return *this;
+	}
+
+	/**
+	 * Pre increment.
+	 *
+	 * @return this
+	 */
+	inline Iterator operator++(int) noexcept
+	{
+		Iterator save = *this;
+
+		++ m_index;
+
+		return save;
+	}
+
+	/**
+	 * Post decrement.
+	 *
+	 * @return this
+	 */
+	inline Iterator &operator--() noexcept
+	{
+		-- m_index;
+
+		return *this;
+	}
+
+	/**
+	 * Pre decrement.
+	 *
+	 * @return this
+	 */
+	inline Iterator operator--(int) noexcept
+	{
+		Iterator save = *this;
+
+		-- m_index;
+
+		return save;
+	}
+
+	/**
+	 * Increment.
+	 *
+	 * @param inc the number
+	 * @return the new iterator
+	 */
+	inline Iterator operator+(int inc) const noexcept
+	{
+		return Iterator(m_archive, m_index + inc);
+	}
+
+	/**
+	 * Decrement.
+	 *
+	 * @param inc the number
+	 * @return the new iterator
+	 */
+	inline Iterator operator-(int dec) const noexcept
+	{
+		return Iterator(m_archive, m_index - dec);
+	}
+
+	/**
+	 * Compare equality.
+	 * 
+	 * @param other the other iterator
+	 * @return true if same
+	 */
+	inline bool operator==(const Iterator &other) const noexcept
+	{
+		return m_index == other.m_index;
+	}
+
+	/**
+	 * Compare equality.
+	 * 
+	 * @param other the other iterator
+	 * @return true if different
+	 */
+	inline bool operator!=(const Iterator &other) const noexcept
+	{
+		return m_index != other.m_index;
+	}
+
+	/**
+	 * Access a stat information at the specified index.
+	 *
+	 * @pre must not be default-constructed
+	 * @param index the new index
+	 * @return stat information
+	 * @throw std::runtime_error on errors
+	 */
+	inline Stat operator[](int index)
+	{
+		assert(m_archive);
+
+		return m_archive->stat(m_index + index);
+	}
+};
+
+/**
  * @class Archive
  * @brief Safe wrapper on the struct zip structure
  */
@@ -246,174 +407,8 @@ public:
 	using const_refernce = Stat;
 	using pointer = StatPtr;
 	using size_type = unsigned;
-
-	/**
-	 * @class iterator
-	 * @brief Iterator
-	 */
-	class iterator : public std::iterator<std::random_access_iterator_tag, Archive> {
-	private:
-		Archive &m_archive;
-		Uint64 m_index;
-
-	public:
-		explicit inline iterator(Archive &archive, Uint64 index = 0) noexcept
-			: m_archive(archive)
-			, m_index(index)
-		{
-		}
-
-		inline Stat operator*() const
-		{
-			return m_archive.stat(m_index);
-		}
-
-		inline StatPtr operator->() const
-		{
-			return StatPtr(m_archive.stat(m_index));
-		}
-
-		inline iterator &operator++() noexcept
-		{
-			++ m_index;
-
-			return *this;
-		}
-
-		inline iterator operator++(int) noexcept
-		{
-			iterator save = *this;
-
-			++ m_index;
-
-			return save;
-		}
-
-		inline iterator &operator--() noexcept
-		{
-			-- m_index;
-
-			return *this;
-		}
-
-		inline iterator operator--(int) noexcept
-		{
-			iterator save = *this;
-
-			-- m_index;
-
-			return save;
-		}
-
-		inline iterator operator+(int inc) const noexcept
-		{
-			return iterator(m_archive, m_index + inc);
-		}
-
-		inline iterator operator-(int dec) const noexcept
-		{
-			return iterator(m_archive, m_index - dec);
-		}
-
-		inline bool operator==(const iterator &other) const noexcept
-		{
-			return m_index == other.m_index;
-		}
-
-		inline bool operator!=(const iterator &other) const noexcept
-		{
-			return m_index != other.m_index;
-		}
-
-		inline Stat operator[](int index) const
-		{
-			return m_archive.stat(index);
-		}
-	};
-
-	/**
-	 * @class const_iterator
-	 * @brief Const iterator
-	 */
-	class const_iterator : public std::iterator<std::random_access_iterator_tag, Archive> {
-	private:
-		const Archive &m_archive;
-		Uint64 m_index;
-
-	public:
-		explicit inline const_iterator(const Archive &archive, Uint64 index = 0) noexcept
-			: m_archive(archive)
-			, m_index(index)
-		{
-		}
-
-		inline Stat operator*() const
-		{
-			return m_archive.stat(m_index);
-		}
-
-		inline StatPtr operator->() const
-		{
-			return StatPtr(m_archive.stat(m_index));
-		}
-
-		inline const_iterator &operator++() noexcept
-		{
-			++ m_index;
-
-			return *this;
-		}
-
-		inline const_iterator operator++(int) noexcept
-		{
-			const_iterator save = *this;
-
-			++ m_index;
-
-			return save;
-		}
-
-		inline const_iterator &operator--() noexcept
-		{
-			-- m_index;
-
-			return *this;
-		}
-
-		inline const_iterator operator--(int) noexcept
-		{
-			const_iterator save = *this;
-
-			-- m_index;
-
-			return save;
-		}
-
-		inline const_iterator operator+(int inc) const noexcept
-		{
-			return const_iterator(m_archive, m_index + inc);
-		}
-
-		inline const_iterator operator-(int dec) const noexcept
-		{
-			return const_iterator(m_archive, m_index - dec);
-		}
-
-		inline bool operator==(const const_iterator &other) const noexcept
-		{
-			return m_index == other.m_index;
-		}
-
-		inline bool operator!=(const const_iterator &other) const noexcept
-		{
-			return m_index != other.m_index;
-		}
-
-		inline Stat operator[](int index) const
-		{
-			return m_archive.stat(index);
-		}
-	};
+	using iterator = Iterator<Archive>;
+	using const_iterator = Iterator<const Archive>;
 
 public:
 	/**
@@ -447,7 +442,7 @@ public:
 	 */
 	inline iterator begin() noexcept
 	{
-		return iterator(*this);
+		return iterator(this);
 	}
 
 	/**
@@ -457,7 +452,7 @@ public:
 	 */
 	inline const_iterator begin() const noexcept
 	{
-		return const_iterator(*this);
+		return const_iterator(this);
 	}
 
 	/**
@@ -467,7 +462,7 @@ public:
 	 */
 	inline const_iterator cbegin() const noexcept
 	{
-		return const_iterator(*this);
+		return const_iterator(this);
 	}
 
 	/**
@@ -477,7 +472,7 @@ public:
 	 */
 	inline iterator end() noexcept
 	{
-		return iterator(*this, numEntries());
+		return iterator(this, numEntries());
 	}
 
 	/**
@@ -487,7 +482,7 @@ public:
 	 */
 	inline const_iterator end() const noexcept
 	{
-		return const_iterator(*this, numEntries());
+		return const_iterator(this, numEntries());
 	}
 
 	/**
@@ -497,7 +492,7 @@ public:
 	 */
 	inline const_iterator cend() const noexcept
 	{
-		return const_iterator(*this, numEntries());
+		return const_iterator(this, numEntries());
 	}
 
 	/**
