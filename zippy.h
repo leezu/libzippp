@@ -19,6 +19,7 @@
 #ifndef _ZIPPY_H_
 #define _ZIPPY_H_
 
+#include <functional>
 #include <iterator>
 #include <memory>
 #include <string>
