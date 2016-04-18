@@ -21,7 +21,7 @@
 
 /**
  * \file zippy.h
- * \brief Simple C++14 wrapper.
+ * \brief Simple C++14 libzip wrapper.
  * \author David Demelier <markand@malikania.fr>
  */
 
@@ -40,19 +40,65 @@
  */
 namespace zippy {
 
+/**
+ * \brief zip_stat typedef.
+ */
 using Stat = struct zip_stat;
+
+/**
+ * \brief zip_source_cmd typedef.
+ */
 using SourceCommand = enum zip_source_cmd;
+
+/**
+ * \brief zip_source_cmd typedef.
+ */
 using Callback = zip_source_callback;
 
-using Flags	= zip_flags_t;
-using Int8	= zip_int8_t;
-using Uint8	= zip_uint8_t;
-using Int16	= zip_int16_t;
-using Uint16	= zip_uint16_t;
-using Int32	= zip_int32_t;
-using Uint32	= zip_uint32_t;
-using Int64	= zip_int64_t;
-using Uint64	= zip_uint64_t;
+/**
+ * \brief zip_flags_t typedef.
+ */
+using Flags = zip_flags_t;
+
+/**
+ * \brief zip_int8_t typedef.
+ */
+using Int8 = zip_int8_t;
+
+/**
+ * \brief zip_uint8_t typedef.
+ */
+using Uint8 = zip_uint8_t;
+
+/**
+ * \brief zip_int16_t typedef.
+ */
+using Int16 = zip_int16_t;
+
+/**
+ * \brief zip_uint16_t typedef.
+ */
+using Uint16 = zip_uint16_t;
+
+/**
+ * \brief zip_int32_t typedef.
+ */
+using Int32 = zip_int32_t;
+
+/**
+ * \brief zip_uint32_t typedef.
+ */
+using Uint32 = zip_uint32_t;
+
+/**
+ * \brief zip_int64_t typedef.
+ */
+using Int64 = zip_int64_t;
+
+/**
+ * \brief zip_uint64_t typedef.
+ */
+using Uint64 = zip_uint64_t;
 
 /**
  * \class File
@@ -86,7 +132,6 @@ public:
 	/**
 	 * Move operator defaulted.
 	 *
-	 * \param other the other File
 	 * \return *this
 	 */
 	File &operator=(File &&) noexcept = default;
@@ -163,6 +208,7 @@ namespace source {
  * Add a file to the archive using a binary buffer.
  *
  * \param data the buffer
+ * \return the source to add
  */
 inline Source buffer(std::string data) noexcept
 {
@@ -170,8 +216,9 @@ inline Source buffer(std::string data) noexcept
 		auto size = data.size();
 		auto ptr = static_cast<char *>(std::malloc(size));
 
-		if (ptr == nullptr)
+		if (ptr == nullptr) {
 			throw std::runtime_error(std::strerror(errno));
+		}
 
 		std::memcpy(ptr, data.data(), size);
 
@@ -192,6 +239,7 @@ inline Source buffer(std::string data) noexcept
  * \param path the path to the file
  * \param start the position where to start
  * \param length the number of bytes to copy
+ * \return the source to add
  */
 inline Source file(std::string path, Uint64 start = 0, Int64 length = -1) noexcept
 {
@@ -268,166 +316,6 @@ public:
 };
 
 /**
- * \class Iterator
- * \brief This is the base class for iterator and const_iterator.
- */
-template <typename ArchiveType>
-class Iterator : public std::iterator<std::random_access_iterator_tag, Stat> {
-private:
-	friend class Archive;
-
-	ArchiveType *m_archive{nullptr};
-	Uint64 m_index{0};
-
-	inline Iterator(ArchiveType *archive, Uint64 index = 0) noexcept
-		: m_archive(archive)
-		, m_index(index)
-	{
-	}
-
-public:
-	/**
-	 * Default iterator.
-	 */
-	Iterator() noexcept = default;
-
-	/**
-	 * Dereference the iterator.
-	 *
-	 * \return the stat information
-	 */
-	inline Stat operator*() const
-	{
-		assert(m_archive);
-
-		return m_archive->stat(m_index);
-	}
-
-	/**
-	 * Dereference the iterator.
-	 *
-	 * \return the stat information as point
-	 */
-	inline StatPtr operator->() const
-	{
-		assert(m_archive);
-
-		return StatPtr(m_archive->stat(m_index));
-	}
-
-	/**
-	 * Post increment.
-	 *
-	 * \return this
-	 */
-	inline Iterator &operator++() noexcept
-	{
-		++ m_index;
-
-		return *this;
-	}
-
-	/**
-	 * Pre increment.
-	 *
-	 * \return this
-	 */
-	inline Iterator operator++(int) noexcept
-	{
-		Iterator save = *this;
-
-		++ m_index;
-
-		return save;
-	}
-
-	/**
-	 * Post decrement.
-	 *
-	 * \return this
-	 */
-	inline Iterator &operator--() noexcept
-	{
-		-- m_index;
-
-		return *this;
-	}
-
-	/**
-	 * Pre decrement.
-	 *
-	 * \return this
-	 */
-	inline Iterator operator--(int) noexcept
-	{
-		Iterator save = *this;
-
-		-- m_index;
-
-		return save;
-	}
-
-	/**
-	 * Increment.
-	 *
-	 * \param inc the number
-	 * \return the new iterator
-	 */
-	inline Iterator operator+(int inc) const noexcept
-	{
-		return Iterator(m_archive, m_index + inc);
-	}
-
-	/**
-	 * Decrement.
-	 *
-	 * \param inc the number
-	 * \return the new iterator
-	 */
-	inline Iterator operator-(int dec) const noexcept
-	{
-		return Iterator(m_archive, m_index - dec);
-	}
-
-	/**
-	 * Compare equality.
-	 * 
-	 * \param other the other iterator
-	 * \return true if same
-	 */
-	inline bool operator==(const Iterator &other) const noexcept
-	{
-		return m_index == other.m_index;
-	}
-
-	/**
-	 * Compare equality.
-	 * 
-	 * \param other the other iterator
-	 * \return true if different
-	 */
-	inline bool operator!=(const Iterator &other) const noexcept
-	{
-		return m_index != other.m_index;
-	}
-
-	/**
-	 * Access a stat information at the specified index.
-	 *
-	 * \pre must not be default-constructed
-	 * \param index the new index
-	 * \return stat information
-	 * \throw std::runtime_error on errors
-	 */
-	inline Stat operator[](int index)
-	{
-		assert(m_archive);
-
-		return m_archive->stat(m_index + index);
-	}
-};
-
-/**
  * \class Archive
  * \brief Safe wrapper on the struct zip structure
  */
@@ -441,13 +329,199 @@ private:
 	Archive &operator=(const Archive &) = delete;
 
 public:
+	/**
+	 * \brief Base iterator class
+	 */
+	class Iterator : public std::iterator<std::random_access_iterator_tag, Stat> {
+	private:
+		friend class Archive;
+
+		Archive *m_archive{nullptr};
+		Uint64 m_index{0};
+	
+		inline Iterator(Archive *archive, Uint64 index = 0) noexcept
+			: m_archive(archive)
+			, m_index(index)
+		{
+		}
+	
+	public:
+		/**
+		 * Default iterator.
+		 */
+		Iterator() noexcept = default;
+	
+		/**
+		 * Dereference the iterator.
+		 *
+		 * \return the stat information
+		 */
+		inline Stat operator*() const
+		{
+			assert(m_archive);
+	
+			return m_archive->stat(m_index);
+		}
+	
+		/**
+		 * Dereference the iterator.
+		 *
+		 * \return the stat information as point
+		 */
+		inline StatPtr operator->() const
+		{
+			assert(m_archive);
+	
+			return StatPtr(m_archive->stat(m_index));
+		}
+	
+		/**
+		 * Post increment.
+		 *
+		 * \return this
+		 */
+		inline Iterator &operator++() noexcept
+		{
+			++ m_index;
+	
+			return *this;
+		}
+	
+		/**
+		 * Pre increment.
+		 *
+		 * \return this
+		 */
+		inline Iterator operator++(int) noexcept
+		{
+			Iterator save = *this;
+	
+			++ m_index;
+	
+			return save;
+		}
+	
+		/**
+		 * Post decrement.
+		 *
+		 * \return this
+		 */
+		inline Iterator &operator--() noexcept
+		{
+			-- m_index;
+	
+			return *this;
+		}
+	
+		/**
+		 * Pre decrement.
+		 *
+		 * \return this
+		 */
+		inline Iterator operator--(int) noexcept
+		{
+			Iterator save = *this;
+	
+			-- m_index;
+	
+			return save;
+		}
+	
+		/**
+		 * Increment.
+		 *
+		 * \param inc the number
+		 * \return the new iterator
+		 */
+		inline Iterator operator+(int inc) const noexcept
+		{
+			return Iterator(m_archive, m_index + inc);
+		}
+	
+		/**
+		 * Decrement.
+		 *
+		 * \param dec the number
+		 * \return the new iterator
+		 */
+		inline Iterator operator-(int dec) const noexcept
+		{
+			return Iterator(m_archive, m_index - dec);
+		}
+	
+		/**
+		 * Compare equality.
+		 * 
+		 * \param other the other iterator
+		 * \return true if same
+		 */
+		inline bool operator==(const Iterator &other) const noexcept
+		{
+			return m_index == other.m_index;
+		}
+	
+		/**
+		 * Compare equality.
+		 * 
+		 * \param other the other iterator
+		 * \return true if different
+		 */
+		inline bool operator!=(const Iterator &other) const noexcept
+		{
+			return m_index != other.m_index;
+		}
+	
+		/**
+		 * Access a stat information at the specified index.
+		 *
+		 * \pre must not be default-constructed
+		 * \param index the new index
+		 * \return stat information
+		 * \throw std::runtime_error on errors
+		 */
+		inline Stat operator[](int index)
+		{
+			assert(m_archive);
+	
+			return m_archive->stat(m_index + index);
+		}
+	};
+
+public:
+	/**
+	 * Iterator conversion to Stat.
+	 */
 	using value_type = Stat;
+
+	/**
+	 * Reference is a copy of Stat.
+	 */
 	using reference = Stat;
+
+	/**
+	 * Const reference is a copy of Stat.
+	 */
 	using const_refernce = Stat;
+
+	/**
+	 * Pointer is a small wrapper
+	 */
 	using pointer = StatPtr;
+
+	/**
+	 * Type of difference.
+	 */
 	using size_type = unsigned;
-	using iterator = Iterator<Archive>;
-	using const_iterator = Iterator<const Archive>;
+
+	/**
+	 * Random access iterator.
+	 */
+	using iterator = Iterator;
+
+	/**
+	 * Const random access iterator.
+	 */
+	using const_iterator = Iterator;
 
 public:
 	/**
@@ -506,7 +580,7 @@ public:
 	 */
 	inline const_iterator begin() const noexcept
 	{
-		return const_iterator(this);
+		return const_iterator(const_cast<Archive *>(this));
 	}
 
 	/**
@@ -516,7 +590,7 @@ public:
 	 */
 	inline const_iterator cbegin() const noexcept
 	{
-		return const_iterator(this);
+		return const_iterator(const_cast<Archive *>(this));
 	}
 
 	/**
@@ -536,7 +610,7 @@ public:
 	 */
 	inline const_iterator end() const noexcept
 	{
-		return const_iterator(this, numEntries());
+		return const_iterator(const_cast<Archive *>(this), numEntries());
 	}
 
 	/**
@@ -546,7 +620,7 @@ public:
 	 */
 	inline const_iterator cend() const noexcept
 	{
-		return const_iterator(this, numEntries());
+		return const_iterator(const_cast<Archive *>(this), numEntries());
 	}
 
 	/**
