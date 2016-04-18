@@ -32,7 +32,6 @@ add_subdirectory(gtest)
 enable_testing()
 add_executable(
 	zip
-	${zip_SOURCE_DIR}/zippy.cpp
 	${zip_SOURCE_DIR}/zippy.h
 	${zip_SOURCE_DIR}/test/main.cpp
 )
