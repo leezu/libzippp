@@ -1,7 +1,7 @@
 /**
  * \mainpage
  *
- * Welcome to the libzip library.
+ * Welcome to the zip library.
  *
  * ## Introduction
  *
@@ -24,7 +24,7 @@
  * 
  * ## Installation
  *
- * Just copy the file zippy.h and add it to your project.
+ * Just copy the file zippy.hpp and add it to your project.
  *
  * ## Overview
  *
@@ -33,7 +33,7 @@
  * ````cpp
  * #include <iostream>
  *
- * #include "zippy.h"
+ * #include "zippy.hpp"
  *
  * try {
  * 	zippy::Archive archive("mydata.zip");

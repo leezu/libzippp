@@ -10,4 +10,4 @@ Requirements
 Installation
 ------------
 
-Just copy the file zippy.h and add it to your project.
+Just copy the file zippy.hpp and add it to your project.

@@ -1,5 +1,5 @@
 /*
- * zippy.h -- wrapper around libzip
+ * zippy.hpp -- wrapper around libzip
  *
  * Copyright (c) 2013-2016 David Demelier <markand@malikania.fr>
  *
@@ -16,11 +16,11 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#ifndef ZIPPY_H
-#define ZIPPY_H
+#ifndef ZIPPY_HPP
+#define ZIPPY_HPP
 
 /**
- * \file zippy.h
+ * \file zippy.hpp
  * \brief Simple C++14 libzip wrapper.
  * \author David Demelier <markand@malikania.fr>
  */
@@ -1017,4 +1017,4 @@ public:
 
 } // !zippy
 
-#endif // !ZIPPY_H
+#endif // !ZIPPY_HPP

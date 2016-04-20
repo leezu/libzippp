@@ -18,7 +18,7 @@
 
 #include <gtest/gtest.h>
 
-#include <zippy.h>
+#include <zippy.hpp>
 
 using namespace zippy;
 using namespace zippy::source;

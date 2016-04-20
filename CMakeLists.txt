@@ -20,7 +20,7 @@ cmake_minimum_required(VERSION 3.0)
 project(zip)
 
 set(ZIP_VERSION_MAJOR "1")
-set(ZIP_VERSION_MINOR "1")
+set(ZIP_VERSION_MINOR "0")
 set(ZIP_VERSION_PATCH "0")
 set(ZIP_VERSION "${ZIP_VERSION_MAJOR}.${ZIP_VERSION_MINOR}.${ZIP_VERSION_PATCH}-dev")
 
@@ -38,7 +38,7 @@ add_subdirectory(gtest)
 enable_testing()
 add_executable(
 	zip
-	${zip_SOURCE_DIR}/zippy.h
+	${zip_SOURCE_DIR}/zippy.hpp
 	${zip_SOURCE_DIR}/test/main.cpp
 	${zip_SOURCE_DIR}/INSTALL.md
 	${zip_SOURCE_DIR}/LICENSE.md
