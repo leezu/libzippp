@@ -36,7 +36,7 @@ TEST(Source, file)
 
 		archive.add(file(DIRECTORY "data.txt"), "data.txt");
 	} catch (const std::exception &ex) {
-		std::cerr << ex.what() << std::endl;
+		FAIL() << ex.what();
 	}
 
 	try {
@@ -48,7 +48,7 @@ TEST(Source, file)
 
 		ASSERT_EQ("abcdef\n", content);
 	} catch (const std::exception &ex) {
-		std::cerr << ex.what() << std::endl;
+		FAIL() << ex.what();
 	}
 }
 
@@ -61,7 +61,7 @@ TEST(Source, buffer)
 
 		archive.add(buffer("abcdef"), "data.txt");
 	} catch (const std::exception &ex) {
-		std::cerr << ex.what() << std::endl;
+		FAIL() << ex.what();
 	}
 
 	try {
@@ -73,7 +73,7 @@ TEST(Source, buffer)
 
 		ASSERT_EQ("abcdef", content);
 	} catch (const std::exception &ex) {
-		std::cerr << ex.what() << std::endl;
+		FAIL() << ex.what();
 	}
 }
 
@@ -91,7 +91,7 @@ TEST(Write, simple)
 
 		archive.add(buffer("hello world!"), "DATA");
 	} catch (const std::exception &ex) {
-		std::cerr << "warning: " << ex.what() << std::endl;
+		FAIL() << ex.what();
 	}
 
 	try {
@@ -104,7 +104,7 @@ TEST(Write, simple)
 		ASSERT_EQ(static_cast<decltype(stats.size)>(12), stats.size);
 		ASSERT_EQ("hello world!", content);
 	} catch (const std::exception &ex) {
-		std::cerr << "warning: " << ex.what() << std::endl;
+		FAIL() << ex.what();
 	}
 }
 
@@ -153,7 +153,7 @@ TEST_F(ReadingTest, stat)
 		ASSERT_EQ(static_cast<decltype(stats.size)>(15), stats.size);
 		ASSERT_STREQ("README", stats.name);
 	} catch (const std::exception &ex) {
-		std::cerr << ex.what() << std::endl;
+		FAIL() << ex.what();
 	}
 }
 
@@ -171,7 +171,7 @@ TEST_F(ReadingTest, read)
 
 		ASSERT_EQ("This is a test\n", text);
 	} catch (const std::exception &ex) {
-		std::cerr << "warning: " << ex.what() << std::endl;
+		FAIL() << ex.what();
 	}
 }
 
@@ -281,8 +281,9 @@ TEST_F(ReadingTest, loop)
 	std::vector<std::string> names{"README", "INSTALL", "doc/", "doc/REFMAN"};
 	int i = 0;
 
-	for (const Stat &s : m_archive)
+	for (const Stat &s : m_archive) {
 		ASSERT_STREQ(names[i++].c_str(), s.name);
+	}
 }
 
 int main(int argc, char **argv)
