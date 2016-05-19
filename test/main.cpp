@@ -23,9 +23,10 @@
 using namespace zippy;
 using namespace zippy::source;
 
-/* --------------------------------------------------------
- * Sources
- * -------------------------------------------------------- */
+/*
+ * Sources.
+ * ------------------------------------------------------------------
+ */
 
 TEST(Source, file)
 {
@@ -77,15 +78,16 @@ TEST(Source, buffer)
 	}
 }
 
-/* --------------------------------------------------------
- * Write
- * -------------------------------------------------------- */
+/*
+ * Write.
+ * ------------------------------------------------------------------
+ */
 
 TEST(Write, simple)
 {
 	remove("output.zip");
 
-	// Open first and save some data
+	// Open first and save some data.
 	try {
 		Archive archive("output.zip", ZIP_CREATE);
 
@@ -125,9 +127,10 @@ TEST(Write, notexist)
 	}
 }
 
-/* --------------------------------------------------------
- * Reading
- * -------------------------------------------------------- */
+/*
+ * Reading.
+ * ------------------------------------------------------------------
+ */
 
 class ReadingTest : public testing::Test {
 protected:
@@ -281,9 +284,8 @@ TEST_F(ReadingTest, loop)
 	std::vector<std::string> names{"README", "INSTALL", "doc/", "doc/REFMAN"};
 	int i = 0;
 
-	for (const Stat &s : m_archive) {
+	for (const Stat &s : m_archive)
 		ASSERT_STREQ(names[i++].c_str(), s.name);
-	}
 }
 
 int main(int argc, char **argv)

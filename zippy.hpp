@@ -175,9 +175,8 @@ public:
 		result.resize(length);
 		auto count = read(&result[0], length);
 
-		if (count < 0) {
+		if (count < 0)
 			return "";
-		}
 
 		result.resize(count);
 
@@ -216,9 +215,8 @@ inline Source buffer(std::string data) noexcept
 		auto size = data.size();
 		auto ptr = static_cast<char *>(std::malloc(size));
 
-		if (ptr == nullptr) {
+		if (ptr == nullptr)
 			throw std::runtime_error(std::strerror(errno));
-		}
 
 		std::memcpy(ptr, data.data(), size);
 
@@ -636,9 +634,8 @@ public:
 		auto size = text.size();
 		auto cstr = (size == 0) ? nullptr : text.c_str();
 
-		if (zip_file_set_comment(m_handle.get(), index, cstr, size, flags) < 0) {
+		if (zip_file_set_comment(m_handle.get(), index, cstr, size, flags) < 0)
 			throw std::runtime_error(zip_strerror(m_handle.get()));
-		}
 	}
 
 	/**
@@ -654,9 +651,8 @@ public:
 		zip_uint32_t length = 0;
 		auto text = zip_file_get_comment(m_handle.get(), index, &length, flags);
 
-		if (text == nullptr) {
+		if (text == nullptr)
 			throw std::runtime_error(zip_strerror(m_handle.get()));
-		}
 
 		return std::string(text, length);
 	}
@@ -669,9 +665,8 @@ public:
 	 */
 	void setComment(const std::string &comment)
 	{
-		if (zip_set_archive_comment(m_handle.get(), comment.c_str(), comment.size()) < 0) {
+		if (zip_set_archive_comment(m_handle.get(), comment.c_str(), comment.size()) < 0)
 			throw std::runtime_error(zip_strerror(m_handle.get()));
-		}
 	}
 
 	/**
@@ -686,9 +681,8 @@ public:
 		int length = 0;
 		auto text = zip_get_archive_comment(m_handle.get(), &length, flags);
 
-		if (text == nullptr) {
+		if (text == nullptr)
 			throw std::runtime_error(zip_strerror(m_handle.get()));
-		}
 
 		return std::string(text, static_cast<std::size_t>(length));
 	}
@@ -717,9 +711,8 @@ public:
 	{
 		auto index = zip_name_locate(m_handle.get(), name.c_str(), flags);
 
-		if (index < 0) {
+		if (index < 0)
 			throw std::runtime_error(zip_strerror(m_handle.get()));
-		}
 
 		return index;
 	}
@@ -736,9 +729,8 @@ public:
 	{
 		Stat st;
 
-		if (zip_stat(m_handle.get(), name.c_str(), flags, &st) < 0) {
+		if (zip_stat(m_handle.get(), name.c_str(), flags, &st) < 0)
 			throw std::runtime_error(zip_strerror(m_handle.get()));
-		}
 
 		return st;
 	}
@@ -755,9 +747,8 @@ public:
 	{
 		Stat st;
 
-		if (zip_stat_index(m_handle.get(), index, flags, &st) < 0) {
+		if (zip_stat_index(m_handle.get(), index, flags, &st) < 0)
 			throw std::runtime_error(zip_strerror(m_handle.get()));
-		}
 
 		return st;
 	}
@@ -798,9 +789,8 @@ public:
 	{
 		auto ret = zip_dir_add(m_handle.get(), directory.c_str(), flags);
 
-		if (ret < 0) {
+		if (ret < 0)
 			throw std::runtime_error(zip_strerror(m_handle.get()));
-		}
 
 		return ret;
 	}
@@ -836,15 +826,13 @@ public:
 	{
 		struct zip_file *file;
 
-		if (password.size() > 0) {
+		if (password.size() > 0)
 			file = zip_fopen_encrypted(m_handle.get(), name.c_str(), flags, password.c_str());
-		} else {
+		else
 			file = zip_fopen(m_handle.get(), name.c_str(), flags);
-		}
 
-		if (file == nullptr) {
+		if (file == nullptr)
 			throw std::runtime_error(zip_strerror(m_handle.get()));
-		}
 
 		return file;
 	}
@@ -862,15 +850,13 @@ public:
 	{
 		struct zip_file *file;
 
-		if (password.size() > 0) {
+		if (password.size() > 0)
 			file = zip_fopen_index_encrypted(m_handle.get(), index, flags, password.c_str());
-		} else {
+		else
 			file = zip_fopen_index(m_handle.get(), index, flags);
-		}
 
-		if (file == nullptr) {
+		if (file == nullptr)
 			throw std::runtime_error(zip_strerror(m_handle.get()));
-		}
 
 		return file;
 	}
@@ -885,9 +871,8 @@ public:
 	 */
 	inline void rename(Uint64 index, const std::string &name, Flags flags = 0)
 	{
-		if (zip_file_rename(m_handle.get(), index, name.c_str(), flags) < 0) {
+		if (zip_file_rename(m_handle.get(), index, name.c_str(), flags) < 0)
 			throw std::runtime_error(zip_strerror(m_handle.get()));
-		}
 	}
 
 	/**
@@ -900,9 +885,8 @@ public:
 	 */
 	inline void setFileCompression(Uint64 index, Int32 comp, Uint32 flags = 0)
 	{
-		if (zip_set_file_compression(m_handle.get(), index, comp, flags) < 0) {
+		if (zip_set_file_compression(m_handle.get(), index, comp, flags) < 0)
 			throw std::runtime_error(zip_strerror(m_handle.get()));
-		}
 	}
 
 	/**
@@ -913,9 +897,8 @@ public:
 	 */
 	inline void remove(Uint64 index)
 	{
-		if (zip_delete(m_handle.get(), index) < 0) {
+		if (zip_delete(m_handle.get(), index) < 0)
 			throw std::runtime_error(zip_strerror(m_handle.get()));
-		}
 	}
 
 	/**
@@ -937,9 +920,8 @@ public:
 	 */
 	inline void unchange(Uint64 index)
 	{
-		if (zip_unchange(m_handle.get(), index) < 0) {
+		if (zip_unchange(m_handle.get(), index) < 0)
 			throw std::runtime_error(zip_strerror(m_handle.get()));
-		}
 	}
 
 	/**
@@ -949,9 +931,8 @@ public:
 	 */
 	inline void unchangeAll()
 	{
-		if (zip_unchange_all(m_handle.get()) < 0) {
+		if (zip_unchange_all(m_handle.get()) < 0)
 			throw std::runtime_error(zip_strerror(m_handle.get()));
-		}
 	}
 
 	/**
@@ -961,9 +942,8 @@ public:
 	 */
 	void unchangeArchive()
 	{
-		if (zip_unchange_archive(m_handle.get()) < 0) {
+		if (zip_unchange_archive(m_handle.get()) < 0)
 			throw std::runtime_error(zip_strerror(m_handle.get()));
-		}
 	}
 
 	/**
@@ -976,9 +956,8 @@ public:
 	{
 		auto cstr = (password.size() > 0) ? password.c_str() : nullptr;
 
-		if (zip_set_default_password(m_handle.get(), cstr) < 0) {
+		if (zip_set_default_password(m_handle.get(), cstr) < 0)
 			throw std::runtime_error(zip_strerror(m_handle.get()));
-		}
 	}
 
 	/**
@@ -990,9 +969,8 @@ public:
 	 */
 	inline void setFlag(Flags flag, int value)
 	{
-		if (zip_set_archive_flag(m_handle.get(), flag, value) < 0) {
+		if (zip_set_archive_flag(m_handle.get(), flag, value) < 0)
 			throw std::runtime_error(zip_strerror(m_handle.get()));
-		}
 	}
 
 	/**
@@ -1007,9 +985,8 @@ public:
 	{
 		auto ret = zip_get_archive_flag(m_handle.get(), which, flags);
 
-		if (ret < 0) {
+		if (ret < 0)
 			throw std::runtime_error(zip_strerror(m_handle.get()));
-		}
 
 		return ret;
 	}
