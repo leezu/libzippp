@@ -43,7 +43,7 @@ namespace zippy {
 /**
  * \brief zip_stat typedef.
  */
-using Stat = struct zip_stat;
+using Stat = struct ::zip_stat;
 
 /**
  * \brief zip_source_cmd typedef.
