@@ -211,7 +211,7 @@ namespace source {
  */
 inline Source buffer(std::string data) noexcept
 {
-    return [=] (struct zip *archive) -> struct zip_source * {
+    return [data = std::move(data)] (struct zip *archive) -> struct zip_source * {
         auto size = data.size();
         auto ptr = static_cast<char *>(std::malloc(size));
 
@@ -241,7 +241,7 @@ inline Source buffer(std::string data) noexcept
  */
 inline Source file(std::string path, Uint64 start = 0, Int64 length = -1) noexcept
 {
-    return [=] (struct zip *archive) -> struct zip_source * {
+    return [path = std::move(path), start, length] (struct zip *archive) -> struct zip_source * {
         auto src = zip_source_file(archive, path.c_str(), start, length);
 
         if (src == nullptr)
