@@ -15,7 +15,6 @@
  *   - Easy API,
  *   - Easy file reading in archive,
  *   - Convenience, thanks to C++ function overloads.
- *
  * 
  * ## Requirements
  * 
@@ -24,7 +23,7 @@
  * 
  * ## Installation
  *
- * Just copy the file zippy.hpp and add it to your project.
+ * Just copy the file zip.hpp and add it to your project.
  *
  * ## Overview
  *
@@ -33,12 +32,12 @@
  * ````cpp
  * #include <iostream>
  *
- * #include "zippy.hpp"
+ * #include "zip.hpp"
  *
  * try {
- * 	zippy::Archive archive("mydata.zip");
- * 	zippy::Stat stat = archive.stat("README");
- * 	zippy::File file = archive.open("README");
+ * 	libzip::Archive archive("mydata.zip");
+ * 	libzip::Stat stat = archive.stat("README");
+ * 	libzip::File file = archive.open("README");
  * 
  * 	std::cout << "content of README:" << std::endl;
  * 	std::cout << file.read(stat.size);

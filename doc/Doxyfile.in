@@ -11,7 +11,7 @@ TAB_SIZE               = 8
 QUIET                  = YES
 WARN_NO_PARAMDOC       = YES
 WARN_AS_ERROR          = YES
-INPUT                  = @zip_SOURCE_DIR@/zippy.hpp \
+INPUT                  = @zip_SOURCE_DIR@/zip.hpp \
                          @zip_SOURCE_DIR@/doc/mainpage.cpp
 HAVE_DOT               = @DOXYGEN_HAVE_DOT@
 DOT_PATH               = @DOXYGEN_DOT_PATH@
