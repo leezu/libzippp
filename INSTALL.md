@@ -5,7 +5,7 @@ Requirements
 ------------
 
   - libzip, http://www.nih.at/libzip/,
-  - C++11.
+  - C++14.
 
 Installation
 ------------
