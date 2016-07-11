@@ -35,14 +35,14 @@
  * #include "zip.hpp"
  *
  * try {
- * 	libzip::Archive archive("mydata.zip");
- * 	libzip::Stat stat = archive.stat("README");
- * 	libzip::File file = archive.open("README");
+ *  libzip::Archive archive("mydata.zip");
+ *  libzip::Stat stat = archive.stat("README");
+ *  libzip::File file = archive.open("README");
  * 
- * 	std::cout << "content of README:" << std::endl;
- * 	std::cout << file.read(stat.size);
+ *  std::cout << "content of README:" << std::endl;
+ *  std::cout << file.read(stat.size);
  * } catch (const std::exception &ex) {
- * 	std::cerr << ex.what() << std::endl;
+ *  std::cerr << ex.what() << std::endl;
  * }
  * ````
  */
