@@ -101,8 +101,7 @@ using Int64 = zip_int64_t;
 using Uint64 = zip_uint64_t;
 
 /**
- * \class File
- * \brief File for reading
+ * \brief File for reading.
  */
 class File {
 private:
@@ -254,8 +253,7 @@ inline Source file(std::string path, Uint64 start = 0, Int64 length = -1) noexce
 } // !source
 
 /**
- * \class StatPtr
- * \brief Wrapper for Stat as pointer
+ * \brief Wrapper for Stat as pointer.
  */
 class StatPtr {
 private:
@@ -314,8 +312,7 @@ public:
 };
 
 /**
- * \class Archive
- * \brief Safe wrapper on the struct zip structure
+ * \brief Safe wrapper on the struct zip structure.
  */
 class Archive {
 private:
@@ -336,19 +333,19 @@ public:
 
         Archive *m_archive{nullptr};
         Uint64 m_index{0};
-    
+
         inline Iterator(Archive *archive, Uint64 index = 0) noexcept
             : m_archive(archive)
             , m_index(index)
         {
         }
-    
+
     public:
         /**
          * Default iterator.
          */
         Iterator() noexcept = default;
-    
+
         /**
          * Dereference the iterator.
          *
@@ -357,10 +354,10 @@ public:
         inline Stat operator*() const
         {
             assert(m_archive);
-    
+
             return m_archive->stat(m_index);
         }
-    
+
         /**
          * Dereference the iterator.
          *
@@ -369,10 +366,10 @@ public:
         inline StatPtr operator->() const
         {
             assert(m_archive);
-    
+
             return StatPtr(m_archive->stat(m_index));
         }
-    
+
         /**
          * Post increment.
          *
@@ -381,10 +378,10 @@ public:
         inline Iterator &operator++() noexcept
         {
             ++ m_index;
-    
+
             return *this;
         }
-    
+
         /**
          * Pre increment.
          *
@@ -393,12 +390,12 @@ public:
         inline Iterator operator++(int) noexcept
         {
             Iterator save = *this;
-    
+
             ++ m_index;
-    
+
             return save;
         }
-    
+
         /**
          * Post decrement.
          *
@@ -407,10 +404,10 @@ public:
         inline Iterator &operator--() noexcept
         {
             -- m_index;
-    
+
             return *this;
         }
-    
+
         /**
          * Pre decrement.
          *
@@ -419,12 +416,12 @@ public:
         inline Iterator operator--(int) noexcept
         {
             Iterator save = *this;
-    
+
             -- m_index;
-    
+
             return save;
         }
-    
+
         /**
          * Increment.
          *
@@ -435,7 +432,7 @@ public:
         {
             return Iterator(m_archive, m_index + inc);
         }
-    
+
         /**
          * Decrement.
          *
@@ -446,10 +443,10 @@ public:
         {
             return Iterator(m_archive, m_index - dec);
         }
-    
+
         /**
          * Compare equality.
-         * 
+         *
          * \param other the other iterator
          * \return true if same
          */
@@ -457,10 +454,10 @@ public:
         {
             return m_index == other.m_index;
         }
-    
+
         /**
          * Compare equality.
-         * 
+         *
          * \param other the other iterator
          * \return true if different
          */
@@ -468,7 +465,7 @@ public:
         {
             return m_index != other.m_index;
         }
-    
+
         /**
          * Access a stat information at the specified index.
          *
@@ -480,7 +477,7 @@ public:
         inline Stat operator[](int index)
         {
             assert(m_archive);
-    
+
             return m_archive->stat(m_index + index);
         }
     };
@@ -992,6 +989,6 @@ public:
     }
 };
 
-} // !zippy
+} // !libzip
 
 #endif // !ZIP_HPP
