@@ -1,15 +1,11 @@
-# This is a sample build configuration for C++.
-# Only use spaces to indent your .yml configuration.
-# -----
-# You can specify a custom docker image from Dockerhub as your build environment.
-image: gcc:6.1
+image: ubuntu:16.10
 
 pipelines:
   default:
     - step:
-        script: # Modify the commands below to build your repository.
+        script:
           - apt-get -y update
-          - apt-get -y install cmake libzip-dev
+          - apt-get -y install cmake g++ libzip-dev
           - cmake . -DCMAKE_BUILD_TYPE=Debug
           - make
           - make test
