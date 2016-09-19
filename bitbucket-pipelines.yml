@@ -8,6 +8,7 @@ pipelines:
   default:
     - step:
         script: # Modify the commands below to build your repository.
-          - cmake .. -DCMAKE_BUILD_TYPE=Debug
+          - apt-get -y install cmake
+          - cmake . -DCMAKE_BUILD_TYPE=Debug
           - make
           - make test
