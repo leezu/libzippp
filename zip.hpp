@@ -49,7 +49,7 @@ namespace libzip {
 /**
  * \brief zip_stat typedef.
  */
-using Stat = struct zip_stat;
+typedef struct zip_stat Stat;
 
 /**
  * \brief zip_source_cmd typedef.
