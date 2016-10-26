@@ -1,5 +1,5 @@
 /*
- * zip.hpp -- wrapper around libzip
+ * zip.hpp -- a safe modern C++ wrapper on top of libzip
  *
  * Copyright (c) 2013-2016 David Demelier <markand@malikania.fr>
  *
@@ -21,8 +21,9 @@
 
 /**
  * \file zip.hpp
- * \brief Simple C++14 libzip wrapper.
+ * \brief A safe modern C++ wrapper on top of libzip.
  * \author David Demelier <markand@malikania.fr>
+ * \version 1.0.0
  */
 
 #if defined(_MSC_VER)

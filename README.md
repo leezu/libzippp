@@ -1,5 +1,5 @@
-libzip++ -- A safe modern C++ wrapper around libzip
-===================================================
+libzip++ -- A safe modern C++ wrapper on top of libzip
+======================================================
 
 Introduction
 ------------

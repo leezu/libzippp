@@ -4,10 +4,10 @@
 
 PROJECT_NAME           = zip
 PROJECT_NUMBER         = @ZIP_VERSION@
-PROJECT_BRIEF          = "Simple C++14 libzip wrapper"
+PROJECT_BRIEF          = "A safe modern C++ wrapper on top of libzip"
 OUTPUT_DIRECTORY       = @zip_BINARY_DIR@/doc
 STRIP_FROM_PATH        = @zip_SOURCE_DIR@
-TAB_SIZE               = 8
+TAB_SIZE               = 4
 QUIET                  = YES
 WARN_NO_PARAMDOC       = YES
 WARN_AS_ERROR          = YES
