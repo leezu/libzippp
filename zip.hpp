@@ -23,7 +23,7 @@
  * \file zip.hpp
  * \brief A safe modern C++ wrapper on top of libzip.
  * \author David Demelier <markand@malikania.fr>
- * \version 1.0.0
+ * \version 2.0.0-dev
  */
 
 #if defined(_MSC_VER)
@@ -50,62 +50,62 @@ namespace libzip {
 /**
  * \brief zip_stat typedef.
  */
-typedef struct zip_stat Stat;
+typedef struct zip_stat stat;
 
 /**
  * \brief zip_source_cmd typedef.
  */
-using SourceCommand = enum zip_source_cmd;
+using source_cmd = enum zip_source_cmd;
 
 /**
  * \brief zip_source_cmd typedef.
  */
-using Callback = zip_source_callback;
+using source_callback = zip_source_callback;
 
 /**
  * \brief zip_flags_t typedef.
  */
-using Flags = zip_flags_t;
+using flags_t = zip_flags_t;
 
 /**
  * \brief zip_int8_t typedef.
  */
-using Int8 = zip_int8_t;
+using int8_t = zip_int8_t;
 
 /**
  * \brief zip_uint8_t typedef.
  */
-using Uint8 = zip_uint8_t;
+using uint8_t = zip_uint8_t;
 
 /**
  * \brief zip_int16_t typedef.
  */
-using Int16 = zip_int16_t;
+using int16_t = zip_int16_t;
 
 /**
  * \brief zip_uint16_t typedef.
  */
-using Uint16 = zip_uint16_t;
+using uint16_t = zip_uint16_t;
 
 /**
  * \brief zip_int32_t typedef.
  */
-using Int32 = zip_int32_t;
+using int32_t = zip_int32_t;
 
 /**
  * \brief zip_uint32_t typedef.
  */
-using Uint32 = zip_uint32_t;
+using uint32_t = zip_uint32_t;
 
 /**
  * \brief zip_int64_t typedef.
  */
-using Int64 = zip_int64_t;
+using int64_t = zip_int64_t;
 
 /**
  * \brief zip_uint64_t typedef.
  */
-using Uint64 = zip_uint64_t;
+using uint64_t = zip_uint64_t;
 
 /**
  * \brief File for reading.
