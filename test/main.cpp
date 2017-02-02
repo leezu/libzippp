@@ -21,27 +21,25 @@
 #include <zip.hpp>
 
 using namespace libzip;
-using namespace libzip::source;
 
 /*
  * Sources.
  * ------------------------------------------------------------------
  */
 
-TEST(Source, file)
+TEST(sources, file)
 {
     remove("output.zip");
 
     try {
-        Archive archive("output.zip", ZIP_CREATE);
-
-        archive.add(file(DIRECTORY "data.txt"), "data.txt");
+        archive archive("output.zip", ZIP_CREATE);
+        archive.add(source_file(DIRECTORY "data.txt"), "data.txt");
     } catch (const std::exception &ex) {
         FAIL() << ex.what();
     }
 
     try {
-        Archive archive("output.zip");
+        archive archive("output.zip");
 
         auto stats = archive.stat("data.txt");
         auto file = archive.open("data.txt");
@@ -53,20 +51,19 @@ TEST(Source, file)
     }
 }
 
-TEST(Source, buffer)
+TEST(sources, buffer)
 {
     remove("output.zip");
 
     try {
-        Archive archive("output.zip", ZIP_CREATE);
-
-        archive.add(buffer("abcdef"), "data.txt");
+        archive archive("output.zip", ZIP_CREATE);
+        archive.add(source_buffer("abcdef"), "data.txt");
     } catch (const std::exception &ex) {
         FAIL() << ex.what();
     }
 
     try {
-        Archive archive("output.zip");
+        archive archive("output.zip");
 
         auto stats = archive.stat("data.txt");
         auto file = archive.open("data.txt");
@@ -83,21 +80,20 @@ TEST(Source, buffer)
  * ------------------------------------------------------------------
  */
 
-TEST(Write, simple)
+TEST(write, simple)
 {
     remove("output.zip");
 
     // Open first and save some data.
     try {
-        Archive archive("output.zip", ZIP_CREATE);
-
-        archive.add(buffer("hello world!"), "DATA");
+        archive archive("output.zip", ZIP_CREATE);
+        archive.add(source_buffer("hello world!"), "DATA");
     } catch (const std::exception &ex) {
         FAIL() << ex.what();
     }
 
     try {
-        Archive archive("output.zip");
+        archive archive("output.zip");
 
         auto stats = archive.stat("DATA");
         auto file = archive.open("DATA");
@@ -110,18 +106,18 @@ TEST(Write, simple)
     }
 }
 
-TEST(Write, notexist)
+TEST(write, notexist)
 {
     remove("output.zip");
 
     try {
-        Archive archive("output.zip", ZIP_CREATE);
+        archive archive("output.zip", ZIP_CREATE);
 
         /*
          * According to the libzip, adding a file that does not exists
          * on the disk is not an error.
          */
-        archive.add(file("file_not_exist"), "FILE");
+        archive.add(source_file("file_not_exist"), "FILE");
     } catch (const std::exception &ex) {
         FAIL() << ex.what();
     }
@@ -132,40 +128,40 @@ TEST(Write, notexist)
  * ------------------------------------------------------------------
  */
 
-class ReadingTest : public testing::Test {
+class reading_test : public testing::Test {
 protected:
-    Archive m_archive;
+    archive m_archive;
 
 public:
-    ReadingTest()
+    reading_test()
         : m_archive(DIRECTORY "stats.zip")
     {
     }
 };
 
-TEST_F(ReadingTest, numEntries)
+TEST_F(reading_test, num_entries)
 {
-    ASSERT_EQ(static_cast<Int64>(4), m_archive.numEntries());
+    ASSERT_EQ(static_cast<int64_t>(4), m_archive.num_entries());
 }
 
-TEST_F(ReadingTest, stat)
+TEST_F(reading_test, stat)
 {
     try {
-        Stat stats = m_archive.stat("README");
+        auto stat = m_archive.stat("README");
 
-        ASSERT_EQ(static_cast<decltype(stats.size)>(15), stats.size);
-        ASSERT_STREQ("README", stats.name);
+        ASSERT_EQ(static_cast<decltype(stat.size)>(15), stat.size);
+        ASSERT_STREQ("README", stat.name);
     } catch (const std::exception &ex) {
         FAIL() << ex.what();
     }
 }
 
-TEST_F(ReadingTest, exists)
+TEST_F(reading_test, exists)
 {
     ASSERT_TRUE(m_archive.exists("README"));
 }
 
-TEST_F(ReadingTest, read)
+TEST_F(reading_test, read)
 {
     try {
         auto file = m_archive.open("README");
@@ -178,114 +174,115 @@ TEST_F(ReadingTest, read)
     }
 }
 
-TEST_F(ReadingTest, increment)
+TEST_F(reading_test, increment)
 {
     {
-        Archive::iterator it = m_archive.begin();
+        archive::iterator it = m_archive.begin();
 
         ASSERT_STREQ("README", (*it++).name);
     }
 
     {
-        Archive::iterator it = m_archive.begin();
+        archive::iterator it = m_archive.begin();
 
         ASSERT_STREQ("INSTALL", (*++it).name);
     }
 
     {
-        Archive::iterator it = m_archive.begin() + 1;
+        archive::iterator it = m_archive.begin() + 1;
 
         ASSERT_STREQ("INSTALL", (*it).name);
     }
 }
 
-TEST_F(ReadingTest, decrement)
+TEST_F(reading_test, decrement)
 {
     {
-        Archive::iterator it = m_archive.begin() + 1;
+        archive::iterator it = m_archive.begin() + 1;
 
         ASSERT_STREQ("INSTALL", (*it--).name);
     }
 
     {
-        Archive::iterator it = m_archive.begin() + 1;
+        archive::iterator it = m_archive.begin() + 1;
 
         ASSERT_STREQ("README", (*--it).name);
     }
 
     {
-        Archive::iterator it = m_archive.end() - 1;
+        archive::iterator it = m_archive.end() - 1;
 
         ASSERT_STREQ("doc/REFMAN", (*it).name);
     }
 }
 
-TEST_F(ReadingTest, constIncrement)
+TEST_F(reading_test, constIncrement)
 {
     {
-        Archive::const_iterator it = m_archive.cbegin();
+        archive::const_iterator it = m_archive.cbegin();
 
         ASSERT_STREQ("README", (*it++).name);
     }
 
     {
-        Archive::const_iterator it = m_archive.cbegin();
+        archive::const_iterator it = m_archive.cbegin();
 
         ASSERT_STREQ("INSTALL", (*++it).name);
     }
 
     {
-        Archive::const_iterator it = m_archive.cbegin() + 1;
+        archive::const_iterator it = m_archive.cbegin() + 1;
 
         ASSERT_STREQ("INSTALL", (*it).name);
     }
 }
 
-TEST_F(ReadingTest, constDecrement)
+TEST_F(reading_test, constDecrement)
 {
     {
-        Archive::const_iterator it = m_archive.cbegin() + 1;
+        archive::const_iterator it = m_archive.cbegin() + 1;
 
         ASSERT_STREQ("INSTALL", (*it--).name);
     }
 
     {
-        Archive::const_iterator it = m_archive.cbegin() + 1;
+        archive::const_iterator it = m_archive.cbegin() + 1;
 
         ASSERT_STREQ("README", (*--it).name);
     }
 
     {
-        Archive::const_iterator it = m_archive.cend() - 1;
+        archive::const_iterator it = m_archive.cend() - 1;
 
         ASSERT_STREQ("doc/REFMAN", (*it).name);
     }
 }
 
-TEST_F(ReadingTest, access)
+TEST_F(reading_test, access)
 {
     {
-        Archive::iterator it = m_archive.begin();
+        archive::iterator it = m_archive.begin();
 
         ASSERT_STREQ("README", it->name);
         ASSERT_STREQ("INSTALL", it[1].name);
     }
 
     {
-        Archive::const_iterator it = m_archive.cbegin();
+        archive::const_iterator it = m_archive.cbegin();
 
         ASSERT_STREQ("README", it->name);
         ASSERT_STREQ("INSTALL", it[1].name);
     }
 }
 
-TEST_F(ReadingTest, loop)
+TEST_F(reading_test, loop)
 {
     std::vector<std::string> names{"README", "INSTALL", "doc/", "doc/REFMAN"};
     int i = 0;
 
-    for (const Stat &s : m_archive)
+    for (const auto& s : m_archive) {
         ASSERT_STREQ(names[i++].c_str(), s.name);
+    }
 }
 
 int main(int argc, char **argv)
