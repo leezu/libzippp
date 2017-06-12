@@ -126,7 +126,7 @@ using source = std::function<struct zip_source* (struct zip*)>;
  */
 class file {
 private:
-    std::unique_ptr<struct zip_file, int (*)(struct zip_file*)> m_handle;
+    std::unique_ptr<struct zip_file, int (*)(struct zip_file*)> handle_;
 
     file(const file&) = delete;
     file& operator=(const file&) = delete;
@@ -138,7 +138,7 @@ public:
      * \param file the file ready to be used
      */
     inline file(struct zip_file* file) noexcept
-        : m_handle(file, zip_fclose)
+        : handle_(file, zip_fclose)
     {
     }
 
@@ -165,7 +165,7 @@ public:
      */
     inline int read(void* data, uint64_t length) noexcept
     {
-        return zip_fread(m_handle.get(), data, length);
+        return zip_fread(handle_.get(), data, length);
     }
 
     /**
@@ -257,7 +257,7 @@ inline source source_file(std::string path, uint64_t start = 0, int64_t length =
  */
 class stat_ptr {
 private:
-    stat m_stat;
+    stat stat_;
 
 public:
     /**
@@ -266,7 +266,7 @@ public:
      * \param stat the file stat
      */
     inline stat_ptr(stat stat) noexcept
-        : m_stat(stat)
+        : stat_(stat)
     {
     }
 
@@ -277,7 +277,7 @@ public:
      */
     inline stat& operator*() noexcept
     {
-        return m_stat;
+        return stat_;
     }
 
     /**
@@ -287,7 +287,7 @@ public:
      */
     inline const stat& operator*() const noexcept
     {
-        return m_stat;
+        return stat_;
     }
 
     /**
@@ -297,7 +297,7 @@ public:
      */
     inline stat* operator->() noexcept
     {
-        return &m_stat;
+        return &stat_;
     }
 
     /**
@@ -307,7 +307,7 @@ public:
      */
     inline const stat* operator->() const noexcept
     {
-        return &m_stat;
+        return &stat_;
     }
 };
 
@@ -316,7 +316,7 @@ public:
  */
 class archive {
 private:
-    std::unique_ptr<struct zip, int (*)(struct zip *)> m_handle;
+    std::unique_ptr<struct zip, int (*)(struct zip *)> handle_;
 
     archive(const archive&) = delete;
     archive& operator=(const archive&) = delete;
@@ -329,12 +329,12 @@ public:
     private:
         friend class archive;
 
-        archive *m_archive{nullptr};
-        uint64_t m_index{0};
+        archive *archive_{nullptr};
+        uint64_t index_{0};
 
         inline iterator(archive* archive, uint64_t index = 0) noexcept
-            : m_archive(archive)
-            , m_index(index)
+            : archive_(archive)
+            , index_(index)
         {
         }
 
@@ -351,9 +351,9 @@ public:
          */
         inline libzip::stat operator*() const
         {
-            assert(m_archive);
+            assert(archive_);
 
-            return m_archive->stat(m_index);
+            return archive_->stat(index_);
         }
 
         /**
@@ -363,9 +363,9 @@ public:
          */
         inline stat_ptr operator->() const
         {
-            assert(m_archive);
+            assert(archive_);
 
-            return stat_ptr(m_archive->stat(m_index));
+            return stat_ptr(archive_->stat(index_));
         }
 
         /**
@@ -375,7 +375,7 @@ public:
          */
         inline iterator& operator++() noexcept
         {
-            ++ m_index;
+            ++ index_;
 
             return *this;
         }
@@ -389,7 +389,7 @@ public:
         {
             iterator save = *this;
 
-            ++ m_index;
+            ++ index_;
 
             return save;
         }
@@ -401,7 +401,7 @@ public:
          */
         inline iterator& operator--() noexcept
         {
-            -- m_index;
+            -- index_;
 
             return *this;
         }
@@ -415,7 +415,7 @@ public:
         {
             iterator save = *this;
 
-            -- m_index;
+            -- index_;
 
             return save;
         }
@@ -428,7 +428,7 @@ public:
          */
         inline iterator operator+(int inc) const noexcept
         {
-            return iterator(m_archive, m_index + inc);
+            return iterator(archive_, index_ + inc);
         }
 
         /**
@@ -439,7 +439,7 @@ public:
          */
         inline iterator operator-(int dec) const noexcept
         {
-            return iterator(m_archive, m_index - dec);
+            return iterator(archive_, index_ - dec);
         }
 
         /**
@@ -450,7 +450,7 @@ public:
          */
         inline bool operator==(const iterator& other) const noexcept
         {
-            return m_index == other.m_index;
+            return index_ == other.index_;
         }
 
         /**
@@ -461,7 +461,7 @@ public:
          */
         inline bool operator!=(const iterator& other) const noexcept
         {
-            return m_index != other.m_index;
+            return index_ != other.index_;
         }
 
         /**
@@ -474,9 +474,9 @@ public:
          */
         inline libzip::stat operator[](int index)
         {
-            assert(m_archive);
+            assert(archive_);
 
-            return m_archive->stat(m_index + index);
+            return archive_->stat(index_ + index);
         }
     };
 
@@ -520,7 +520,7 @@ public:
      * \throw std::runtime_error on errors
      */
     archive(const std::string& path, flags_t flags = 0)
-        : m_handle(nullptr, nullptr)
+        : handle_(nullptr, nullptr)
     {
         int error;
         struct zip* archive = zip_open(path.c_str(), flags, &error);
@@ -533,7 +533,7 @@ public:
             throw std::runtime_error(buf);
         }
 
-        m_handle = { archive, zip_close };
+        handle_ = { archive, zip_close };
     }
 
     /**
@@ -624,8 +624,8 @@ public:
         auto size = text.size();
         auto cstr = (size == 0) ? nullptr : text.c_str();
 
-        if (zip_file_set_comment(m_handle.get(), index, cstr, size, flags) < 0)
-            throw std::runtime_error(zip_strerror(m_handle.get()));
+        if (zip_file_set_comment(handle_.get(), index, cstr, size, flags) < 0)
+            throw std::runtime_error(zip_strerror(handle_.get()));
     }
 
     /**
@@ -639,10 +639,10 @@ public:
     std::string file_comment(uint64_t index, flags_t flags = 0) const
     {
         zip_uint32_t length = 0;
-        auto text = zip_file_get_comment(m_handle.get(), index, &length, flags);
+        auto text = zip_file_get_comment(handle_.get(), index, &length, flags);
 
         if (text == nullptr)
-            throw std::runtime_error(zip_strerror(m_handle.get()));
+            throw std::runtime_error(zip_strerror(handle_.get()));
 
         return std::string(text, length);
     }
@@ -655,8 +655,8 @@ public:
      */
     void set_comment(const std::string& comment)
     {
-        if (zip_set_archive_comment(m_handle.get(), comment.c_str(), comment.size()) < 0)
-            throw std::runtime_error(zip_strerror(m_handle.get()));
+        if (zip_set_archive_comment(handle_.get(), comment.c_str(), comment.size()) < 0)
+            throw std::runtime_error(zip_strerror(handle_.get()));
     }
 
     /**
@@ -669,10 +669,10 @@ public:
     std::string comment(flags_t flags = 0) const
     {
         int length = 0;
-        auto text = zip_get_archive_comment(m_handle.get(), &length, flags);
+        auto text = zip_get_archive_comment(handle_.get(), &length, flags);
 
         if (text == nullptr)
-            throw std::runtime_error(zip_strerror(m_handle.get()));
+            throw std::runtime_error(zip_strerror(handle_.get()));
 
         return std::string(text, static_cast<std::size_t>(length));
     }
@@ -686,7 +686,7 @@ public:
      */
     bool exists(const std::string& name, flags_t flags = 0) const noexcept
     {
-        return zip_name_locate(m_handle.get(), name.c_str(), flags) >= 0;
+        return zip_name_locate(handle_.get(), name.c_str(), flags) >= 0;
     }
 
     /**
@@ -699,10 +699,10 @@ public:
      */
     int64_t find(const std::string& name, flags_t flags = 0) const
     {
-        auto index = zip_name_locate(m_handle.get(), name.c_str(), flags);
+        auto index = zip_name_locate(handle_.get(), name.c_str(), flags);
 
         if (index < 0)
-            throw std::runtime_error(zip_strerror(m_handle.get()));
+            throw std::runtime_error(zip_strerror(handle_.get()));
 
         return index;
     }
@@ -719,8 +719,8 @@ public:
     {
         libzip::stat st;
 
-        if (zip_stat(m_handle.get(), name.c_str(), flags, &st) < 0)
-            throw std::runtime_error(zip_strerror(m_handle.get()));
+        if (zip_stat(handle_.get(), name.c_str(), flags, &st) < 0)
+            throw std::runtime_error(zip_strerror(handle_.get()));
 
         return st;
     }
@@ -737,8 +737,8 @@ public:
     {
         libzip::stat st;
 
-        if (zip_stat_index(m_handle.get(), index, flags, &st) < 0)
-            throw std::runtime_error(zip_strerror(m_handle.get()));
+        if (zip_stat_index(handle_.get(), index, flags, &st) < 0)
+            throw std::runtime_error(zip_strerror(handle_.get()));
 
         return st;
     }
@@ -756,12 +756,12 @@ public:
      */
     int64_t add(const source& source, const std::string& name, flags_t flags = 0)
     {
-        auto src = source(m_handle.get());
-        auto ret = zip_file_add(m_handle.get(), name.c_str(), src, flags);
+        auto src = source(handle_.get());
+        auto ret = zip_file_add(handle_.get(), name.c_str(), src, flags);
 
         if (ret < 0) {
             zip_source_free(src);
-            throw std::runtime_error(zip_strerror(m_handle.get()));
+            throw std::runtime_error(zip_strerror(handle_.get()));
         }
 
         return ret;
@@ -777,10 +777,10 @@ public:
      */
     int64_t mkdir(const std::string& directory, flags_t flags = 0)
     {
-        auto ret = zip_dir_add(m_handle.get(), directory.c_str(), flags);
+        auto ret = zip_dir_add(handle_.get(), directory.c_str(), flags);
 
         if (ret < 0)
-            throw std::runtime_error(zip_strerror(m_handle.get()));
+            throw std::runtime_error(zip_strerror(handle_.get()));
 
         return ret;
     }
@@ -795,11 +795,11 @@ public:
      */
     void replace(const source& source, uint64_t index, flags_t flags = 0)
     {
-        auto src = source(m_handle.get());
+        auto src = source(handle_.get());
 
-        if (zip_file_replace(m_handle.get(), index, src, flags) < 0) {
+        if (zip_file_replace(handle_.get(), index, src, flags) < 0) {
             zip_source_free(src);
-            throw std::runtime_error(zip_strerror(m_handle.get()));
+            throw std::runtime_error(zip_strerror(handle_.get()));
         }
     }
 
@@ -817,12 +817,12 @@ public:
         struct zip_file* file;
 
         if (password.size() > 0)
-            file = zip_fopen_encrypted(m_handle.get(), name.c_str(), flags, password.c_str());
+            file = zip_fopen_encrypted(handle_.get(), name.c_str(), flags, password.c_str());
         else
-            file = zip_fopen(m_handle.get(), name.c_str(), flags);
+            file = zip_fopen(handle_.get(), name.c_str(), flags);
 
         if (file == nullptr)
-            throw std::runtime_error(zip_strerror(m_handle.get()));
+            throw std::runtime_error(zip_strerror(handle_.get()));
 
         return file;
     }
@@ -841,12 +841,12 @@ public:
         struct zip_file* file;
 
         if (password.size() > 0)
-            file = zip_fopen_index_encrypted(m_handle.get(), index, flags, password.c_str());
+            file = zip_fopen_index_encrypted(handle_.get(), index, flags, password.c_str());
         else
-            file = zip_fopen_index(m_handle.get(), index, flags);
+            file = zip_fopen_index(handle_.get(), index, flags);
 
         if (file == nullptr)
-            throw std::runtime_error(zip_strerror(m_handle.get()));
+            throw std::runtime_error(zip_strerror(handle_.get()));
 
         return file;
     }
@@ -861,8 +861,8 @@ public:
      */
     inline void rename(uint64_t index, const std::string& name, flags_t flags = 0)
     {
-        if (zip_file_rename(m_handle.get(), index, name.c_str(), flags) < 0)
-            throw std::runtime_error(zip_strerror(m_handle.get()));
+        if (zip_file_rename(handle_.get(), index, name.c_str(), flags) < 0)
+            throw std::runtime_error(zip_strerror(handle_.get()));
     }
 
     /**
@@ -875,8 +875,8 @@ public:
      */
     inline void set_file_compression(uint64_t index, int32_t comp, uint32_t flags = 0)
     {
-        if (zip_set_file_compression(m_handle.get(), index, comp, flags) < 0)
-            throw std::runtime_error(zip_strerror(m_handle.get()));
+        if (zip_set_file_compression(handle_.get(), index, comp, flags) < 0)
+            throw std::runtime_error(zip_strerror(handle_.get()));
     }
 
     /**
@@ -887,8 +887,8 @@ public:
      */
     inline void remove(uint64_t index)
     {
-        if (zip_delete(m_handle.get(), index) < 0)
-            throw std::runtime_error(zip_strerror(m_handle.get()));
+        if (zip_delete(handle_.get(), index) < 0)
+            throw std::runtime_error(zip_strerror(handle_.get()));
     }
 
     /**
@@ -899,7 +899,7 @@ public:
      */
     inline int64_t num_entries(flags_t flags = 0) const noexcept
     {
-        return zip_get_num_entries(m_handle.get(), flags);
+        return zip_get_num_entries(handle_.get(), flags);
     }
 
     /**
@@ -910,8 +910,8 @@ public:
      */
     inline void unchange(uint64_t index)
     {
-        if (zip_unchange(m_handle.get(), index) < 0)
-            throw std::runtime_error(zip_strerror(m_handle.get()));
+        if (zip_unchange(handle_.get(), index) < 0)
+            throw std::runtime_error(zip_strerror(handle_.get()));
     }
 
     /**
@@ -921,8 +921,8 @@ public:
      */
     inline void unchange_all()
     {
-        if (zip_unchange_all(m_handle.get()) < 0)
-            throw std::runtime_error(zip_strerror(m_handle.get()));
+        if (zip_unchange_all(handle_.get()) < 0)
+            throw std::runtime_error(zip_strerror(handle_.get()));
     }
 
     /**
@@ -932,8 +932,8 @@ public:
      */
     void unchange_archive()
     {
-        if (zip_unchange_archive(m_handle.get()) < 0)
-            throw std::runtime_error(zip_strerror(m_handle.get()));
+        if (zip_unchange_archive(handle_.get()) < 0)
+            throw std::runtime_error(zip_strerror(handle_.get()));
     }
 
     /**
@@ -946,8 +946,8 @@ public:
     {
         auto cstr = (password.size() > 0) ? password.c_str() : nullptr;
 
-        if (zip_set_default_password(m_handle.get(), cstr) < 0)
-            throw std::runtime_error(zip_strerror(m_handle.get()));
+        if (zip_set_default_password(handle_.get(), cstr) < 0)
+            throw std::runtime_error(zip_strerror(handle_.get()));
     }
 
     /**
@@ -959,8 +959,8 @@ public:
      */
     inline void set_flag(flags_t flag, int value)
     {
-        if (zip_set_archive_flag(m_handle.get(), flag, value) < 0)
-            throw std::runtime_error(zip_strerror(m_handle.get()));
+        if (zip_set_archive_flag(handle_.get(), flag, value) < 0)
+            throw std::runtime_error(zip_strerror(handle_.get()));
     }
 
     /**
@@ -973,10 +973,10 @@ public:
      */
     inline int flag(flags_t which, flags_t flags = 0) const
     {
-        auto ret = zip_get_archive_flag(m_handle.get(), which, flags);
+        auto ret = zip_get_archive_flag(handle_.get(), which, flags);
 
         if (ret < 0)
-            throw std::runtime_error(zip_strerror(m_handle.get()));
+            throw std::runtime_error(zip_strerror(handle_.get()));
 
         return ret;
     }
