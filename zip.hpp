@@ -121,6 +121,10 @@ using uint64_t = zip_uint64_t;
  */
 using source = std::function<struct zip_source* (struct zip*)>;
 
+using zip_progress_callback = void (*)(struct zip*, double, void*);
+
+using cleanup_callback = void (*)(void*);
+
 /**
  * \brief File for reading.
  */
@@ -979,6 +983,15 @@ public:
             throw std::runtime_error(zip_strerror(handle_.get()));
 
         return ret;
+    }
+
+    void register_progress_callback(zip_progress_callback progress,
+                                    double precision,
+                                    cleanup_callback cleanup,
+                                    void* data)
+    {
+        zip_register_progress_callback_with_state(
+            handle_.get(), precision, progress, cleanup, data);
     }
 };
 
