@@ -121,6 +121,8 @@ using uint64_t = zip_uint64_t;
  */
 using source = std::function<struct zip_source* (struct zip*)>;
 
+using zip_progress_callback = std::function<void (double)>;
+
 /**
  * \brief File for reading.
  */
@@ -979,6 +981,16 @@ public:
             throw std::runtime_error(zip_strerror(handle_.get()));
 
         return ret;
+    }
+
+    void register_progress_callback(zip_progress_callback callback, double precision)
+    {
+        zip_register_progress_callback_with_state(
+            handle_.get(),
+            precision,
+            [](zip*, double p, void* data) { (*static_cast<zip_progress_callback*>(data))(p); },
+            [](void* data) { delete static_cast<zip_progress_callback*>(data); },
+            new zip_progress_callback{std::move(callback)});
     }
 };
 
